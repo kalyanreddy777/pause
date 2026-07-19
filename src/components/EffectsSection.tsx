@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { motion, useScroll, useTransform, useMotionValue, useSpring } from "motion/react";
 
 const effectsData = [
@@ -52,7 +52,8 @@ function EffectCard({ effect, i, smoothProgress, totalCards }: { key?: React.Key
   const enterEnd = enterStart + step;
 
   const yInputs = [0, enterStart, enterEnd];
-  const startY = typeof window !== 'undefined' ? window.innerHeight * 1.5 : 1500;
+  const { innerHeight = 800 } = typeof window !== 'undefined' ? window : {};
+  const startY = innerHeight * 1.5;
   const yOutputs = [startY, startY, 0];
 
   const scaleInputs = [0, enterStart, enterEnd];
@@ -80,10 +81,31 @@ function EffectCard({ effect, i, smoothProgress, totalCards }: { key?: React.Key
   const rotateY = useMotionValue(0);
   const hoverScale = useMotionValue(1);
 
-  const springConfig = { damping: 30, stiffness: 100, mass: 2 };
+  const springConfig = { damping: 20, stiffness: 300, mass: 0.2 };
   const springRotateX = useSpring(rotateX, springConfig);
   const springRotateY = useSpring(rotateY, springConfig);
   const springHoverScale = useSpring(hoverScale, springConfig);
+
+  useEffect(() => {
+    const handleDeviceOrientation = (e: DeviceOrientationEvent) => {
+      const { beta, gamma } = e; 
+      if (beta !== null && gamma !== null) {
+        // Map beta (-45 to 45) to -15 to 15 degrees
+        const normalizedBeta = Math.max(-45, Math.min(45, beta - 45)) / 45; // Assume holding phone at 45 deg
+        // Map gamma (-45 to 45) to -15 to 15 degrees
+        const normalizedGamma = Math.max(-45, Math.min(45, gamma)) / 45;
+        
+        const rotateAmplitude = 14;
+        rotateX.set(normalizedBeta * -rotateAmplitude);
+        rotateY.set(normalizedGamma * rotateAmplitude);
+      }
+    };
+
+    window.addEventListener("deviceorientation", handleDeviceOrientation);
+    return () => {
+      window.removeEventListener("deviceorientation", handleDeviceOrientation);
+    };
+  }, [rotateX, rotateY]);
 
   const handleMouse = (e: React.PointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -110,26 +132,28 @@ function EffectCard({ effect, i, smoothProgress, totalCards }: { key?: React.Key
 
   return (
     <motion.div 
-      className="absolute top-0 w-full h-[400px] md:h-[450px] [perspective:800px] pointer-events-auto"
+      className="absolute top-0 w-full h-[400px] md:h-[450px] [perspective:1000px] pointer-events-auto"
       style={{ 
         zIndex: i,
         transformOrigin: "top center",
         y,
-        scale: scrollScale
+        scale: scrollScale,
+        willChange: "transform"
       }}
     >
       <motion.div
-        className="w-full h-full flex flex-col justify-center bg-white text-[#1a1a1a] rounded-[32px] p-8 md:p-14 shadow-[0_20px_40px_rgba(0,0,0,0.08)] border border-black/5 [transform-style:preserve-3d]"
+        className="w-full h-full flex flex-col justify-center bg-white text-[#1a1a1a] rounded-[32px] p-8 md:p-14 shadow-[0_20px_40px_rgba(0,0,0,0.08)] border border-black/5"
         style={{
           rotateX: springRotateX,
           rotateY: springRotateY,
           scale: springHoverScale,
+          willChange: "transform"
         }}
         onPointerMove={handleMouse}
         onPointerEnter={handleMouseEnter}
         onPointerLeave={handleMouseLeave}
       >
-        <div className="flex flex-col [transform:translateZ(30px)] gsap-fade-section">
+        <div className="flex flex-col gsap-fade-section">
           <div className="flex items-center gap-5 mb-6 md:mb-8 gsap-fade-item">
             <div className="w-14 h-14 md:w-16 md:h-16 bg-[#F3F4ED] rounded-full flex items-center justify-center text-2xl md:text-3xl shadow-inner shrink-0">
               {effect.icon}
@@ -166,8 +190,11 @@ export function EffectsSection() {
         <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col items-center justify-center pt-24 pb-12">
 
           <motion.div 
-            className="absolute top-1/2 left-1/2 w-[100vw] h-[100vw] max-w-[1200px] max-h-[1200px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#DEF0FC] z-0 blur-[80px]" 
-            style={{ scale: circleScale }}
+            className="absolute top-1/2 left-1/2 w-[100vw] h-[100vw] max-w-[1200px] max-h-[1200px] -translate-x-1/2 -translate-y-1/2 rounded-full z-0 pointer-events-none" 
+            style={{ 
+              scale: circleScale,
+              background: 'radial-gradient(circle, #DEF0FC 0%, rgba(222,240,252,0) 70%)'
+            }}
           />
 
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 pointer-events-none pt-24 pb-12">
@@ -177,7 +204,7 @@ export function EffectsSection() {
                     key={i} 
                     effect={effect} 
                     i={i} 
-                    smoothProgress={smoothProgress} 
+                    smoothProgress={scrollYProgress} 
                     totalCards={effectsData.length} 
                   />
                 ))}

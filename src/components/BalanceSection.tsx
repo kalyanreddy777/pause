@@ -156,6 +156,8 @@ export function BalanceSection() {
             showCover={true}
             mobileScrollSupport={true}
             usePortrait={true}
+            flippingTime={1000}
+            drawShadow={true}
             className="mx-auto"
             style={{ margin: '0 auto' }}
           >

@@ -278,11 +278,25 @@ function Hero({ onVideoLoaded }: { onVideoLoaded: () => void }) {
       mouseY.set((e.clientY / innerHeight) * 2 - 1);
     };
 
+    const handleDeviceOrientation = (e: DeviceOrientationEvent) => {
+      const { beta, gamma } = e; // beta: front-back (-180 to 180), gamma: left-right (-90 to 90)
+      if (beta !== null && gamma !== null) {
+        // map beta (-45 to 45) to -1 to 1
+        const normalizedBeta = Math.max(-45, Math.min(45, beta)) / 45;
+        // map gamma (-45 to 45) to -1 to 1
+        const normalizedGamma = Math.max(-45, Math.min(45, gamma)) / 45;
+        mouseX.set(normalizedGamma);
+        mouseY.set((normalizedBeta - 0.5)); // Offset slightly for comfortable viewing angle
+      }
+    };
+
     window.addEventListener("pointermove", handleMouseMove);
     window.addEventListener("pointerdown", handleMouseMove);
+    window.addEventListener("deviceorientation", handleDeviceOrientation);
     return () => {
       window.removeEventListener("pointermove", handleMouseMove);
       window.removeEventListener("pointerdown", handleMouseMove);
+      window.removeEventListener("deviceorientation", handleDeviceOrientation);
     };
   }, [mouseX, mouseY]);
 
