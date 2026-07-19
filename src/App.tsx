@@ -44,7 +44,7 @@ function CustomCursor() {
   const springY = useSpring(mouseY, springConfig);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: PointerEvent) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
 
@@ -53,8 +53,12 @@ function CustomCursor() {
       scale.set(isInteractive ? 2.5 : 1);
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    window.addEventListener("pointermove", handleMouseMove);
+    window.addEventListener("pointerdown", handleMouseMove);
+    return () => {
+      window.removeEventListener("pointermove", handleMouseMove);
+      window.removeEventListener("pointerdown", handleMouseMove);
+    };
   }, [mouseX, mouseY, scale]);
 
   return (
@@ -268,14 +272,18 @@ function Hero({ onVideoLoaded }: { onVideoLoaded: () => void }) {
   const mouseY = useMotionValue(0);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: PointerEvent) => {
       const { innerWidth, innerHeight } = window;
       mouseX.set((e.clientX / innerWidth) * 2 - 1);
       mouseY.set((e.clientY / innerHeight) * 2 - 1);
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    window.addEventListener("pointermove", handleMouseMove);
+    window.addEventListener("pointerdown", handleMouseMove);
+    return () => {
+      window.removeEventListener("pointermove", handleMouseMove);
+      window.removeEventListener("pointerdown", handleMouseMove);
+    };
   }, [mouseX, mouseY]);
 
   const springConfig = { damping: 30, stiffness: 200, mass: 0.5 };
@@ -285,9 +293,16 @@ function Hero({ onVideoLoaded }: { onVideoLoaded: () => void }) {
   const x = useTransform(springX, [-1, 1], [-25, 25]);
   const y = useTransform(springY, [-1, 1], [-25, 25]);
 
-  const messagesProgress = useTransform(scrollYProgress, [0, 0.75], [0, 1]);
-  const heroScale = useTransform(scrollYProgress, [0.75, 1], [1, 0.85]);
-  const heroRadius = useTransform(scrollYProgress, [0.75, 1], ["0px", "40px"]);
+  const scrollSpring = useSpring(scrollYProgress, {
+    damping: 20,
+    stiffness: 100,
+    mass: 0.5,
+    restDelta: 0.001
+  });
+
+  const messagesProgress = useTransform(scrollSpring, [0, 0.75], [0, 1]);
+  const heroScale = useTransform(scrollSpring, [0.75, 1], [1, 0.85]);
+  const heroRadius = useTransform(scrollSpring, [0.75, 1], ["0px", "40px"]);
 
   return (
     <div id="hero" ref={containerRef} className="h-[350vh] bg-white relative z-20">
@@ -347,6 +362,13 @@ function TextRevealContent() {
     offset: ["start start", "end end"]
   });
 
+  const scrollSpring = useSpring(scrollYProgress, {
+    damping: 20,
+    stiffness: 100,
+    mass: 0.5,
+    restDelta: 0.001
+  });
+
   const text = "One notification becomes one minute. One minute becomes one hour. Before you know it, you're watching life through a screen instead of living it. Sometimes, all it takes is a single pause to remember what you've been missing.";
   const words = text.split(" ");
 
@@ -362,7 +384,7 @@ function TextRevealContent() {
           {words.map((word, i) => {
             const start = (i / words.length) * 0.5;
             const end = start + 0.1;
-            const opacity = useTransform(scrollYProgress, [0, start, end, 1], [0.15, 0.15, 1, 1]);
+            const opacity = useTransform(scrollSpring, [0, start, end, 1], [0.15, 0.15, 1, 1]);
             return (
               <motion.span key={i} style={{ opacity }} className="font-instrument text-[32px] md:text-[40px] lg:text-[52px] xl:text-[64px] tracking-tight text-[#1a1a1a] leading-[1.05]">
                 {word}
@@ -634,7 +656,6 @@ function AboutSection() {
 import { ProblemReveal } from "./components/ProblemReveal";
 
 import { EffectsSection } from "./components/EffectsSection";
-import { AmbientSound } from "./components/AmbientSound";
 import { BalanceSection } from "./components/BalanceSection";
 
 function ProblemSection() {
@@ -683,13 +704,9 @@ export default function App() {
   useEffect(() => {
     // Initialize Lenis
     const lenis = new Lenis({
-      duration: 1.5,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
+      lerp: 0.08,
       smoothWheel: true,
       wheelMultiplier: 1,
-      touchMultiplier: 2,
     });
     
     // @ts-ignore
@@ -736,7 +753,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white">
       <CustomCursor />
-      <AmbientSound />
       <AnimatePresence>
         {!isVideoLoaded && (
           <motion.div

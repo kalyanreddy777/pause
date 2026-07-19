@@ -85,7 +85,7 @@ function EffectCard({ effect, i, smoothProgress, totalCards }: { key?: React.Key
   const springRotateY = useSpring(rotateY, springConfig);
   const springHoverScale = useSpring(hoverScale, springConfig);
 
-  const handleMouse = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouse = (e: React.PointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const offsetX = e.clientX - rect.left - rect.width / 2;
     const offsetY = e.clientY - rect.top - rect.height / 2;
@@ -125,9 +125,9 @@ function EffectCard({ effect, i, smoothProgress, totalCards }: { key?: React.Key
           rotateY: springRotateY,
           scale: springHoverScale,
         }}
-        onMouseMove={handleMouse}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onPointerMove={handleMouse}
+        onPointerEnter={handleMouseEnter}
+        onPointerLeave={handleMouseLeave}
       >
         <div className="flex flex-col [transform:translateZ(30px)] gsap-fade-section">
           <div className="flex items-center gap-5 mb-6 md:mb-8 gsap-fade-item">
@@ -151,8 +151,14 @@ export function EffectsSection() {
     offset: ["start start", "end end"]
   });
 
-  const clipPathSize = useTransform(scrollYProgress, [0, 0.1], ["0%", "150%"]);
-  const clipPath = useTransform(clipPathSize, (size) => `circle(${size} at 50% 50%)`);
+  const smoothProgress = useSpring(scrollYProgress, {
+    damping: 20,
+    stiffness: 100,
+    mass: 0.5,
+    restDelta: 0.001
+  });
+
+  const circleScale = useTransform(smoothProgress, [0, 0.1], [0, 3]);
 
   return (
     <div id="impact" className="relative w-full bg-white z-10 max-w-none">
@@ -160,8 +166,8 @@ export function EffectsSection() {
         <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col items-center justify-center pt-24 pb-12">
 
           <motion.div 
-            className="absolute inset-0 z-0 bg-[#DEF0FC]" 
-            style={{ clipPath }}
+            className="absolute top-1/2 left-1/2 w-[100vw] h-[100vw] max-w-[1200px] max-h-[1200px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#DEF0FC] z-0 blur-[80px]" 
+            style={{ scale: circleScale }}
           />
 
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 pointer-events-none pt-24 pb-12">
@@ -171,7 +177,7 @@ export function EffectsSection() {
                     key={i} 
                     effect={effect} 
                     i={i} 
-                    smoothProgress={scrollYProgress} 
+                    smoothProgress={smoothProgress} 
                     totalCards={effectsData.length} 
                   />
                 ))}
