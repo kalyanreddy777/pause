@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body>
+<div id="box" style="width: 100px; height: 100px; background: red; clip-path: circle(0px at 50% 50%);"></div>
+<script>
+gsap.to("#box", { clipPath: "circle(150vw at 50% 50%)", duration: 1 });
+</script>
+</body>
+</html>
