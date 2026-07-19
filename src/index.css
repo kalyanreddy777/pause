@@ -26,8 +26,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-html {
-  cursor: none;
+@media (min-width: 768px) {
+  html, a, button, [role="button"], input {
+    cursor: none;
+  }
 }
 
 html.lenis, html.lenis body {
@@ -40,10 +42,6 @@ html.lenis, html.lenis body {
 
 .lenis-smooth [data-lenis-prevent] {
   overscroll-behavior: contain;
-}
-
-a, button, [role="button"], input {
-  cursor: none;
 }
 
 .liquid-glass {

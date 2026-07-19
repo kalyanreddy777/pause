@@ -92,15 +92,24 @@ const steps = [
 const Page = React.forwardRef((props: any, ref) => {
   return (
     <div className="page bg-white border border-black/10 overflow-hidden relative shadow-lg" ref={ref as any}>
-      {/* Binding shadow */}
-      <div className={`absolute top-0 bottom-0 ${props.isLeft ? 'right-0 bg-gradient-to-l' : 'left-0 bg-gradient-to-r'} from-black/10 to-transparent pointer-events-none z-10 w-[30px]`} />
+      {/* Binding shadow - on mobile always left, on desktop dynamic */}
+      <div className={`absolute top-0 bottom-0 from-black/10 to-transparent pointer-events-none z-10 w-[20px] md:w-[30px] transition-all duration-300 ${
+        props.isLeft 
+          ? 'left-0 bg-gradient-to-r md:left-auto md:right-0 md:bg-gradient-to-l' 
+          : 'left-0 bg-gradient-to-r'
+      }`} />
       
       <div className="w-full h-full flex flex-col bg-[#FAFAFA]">
         {props.children}
       </div>
       
+      {/* Page number - on mobile always right, on desktop dynamic */}
       {props.number && (
-        <div className={`absolute bottom-6 ${props.isLeft ? 'left-6' : 'right-6'} text-gray-400 font-mono text-xs z-20`}>
+        <div className={`absolute bottom-4 md:bottom-6 text-gray-400 font-mono text-xs z-20 transition-all duration-300 ${
+          props.isLeft
+            ? 'right-6 md:right-auto md:left-6'
+            : 'right-6'
+        }`}>
           {props.number}
         </div>
       )}

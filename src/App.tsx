@@ -21,7 +21,7 @@ function TrailDot({ mouseX, mouseY, index }: { key?: React.Key, mouseX: any, mou
   
   return (
     <motion.div
-      className="fixed top-0 left-0 w-4 h-4 bg-[#0871E7] rounded-full pointer-events-none z-[99] mix-blend-difference"
+      className="hidden md:block fixed top-0 left-0 w-4 h-4 bg-[#0871E7] rounded-full pointer-events-none z-[99] mix-blend-difference"
       style={{
         x: springX,
         y: springY,
@@ -67,7 +67,7 @@ function CustomCursor() {
         <TrailDot key={i} mouseX={mouseX} mouseY={mouseY} index={i} />
       ))}
       <motion.div
-        className="fixed top-0 left-0 w-4 h-4 bg-[#0871E7] rounded-full pointer-events-none z-[100] mix-blend-difference"
+        className="hidden md:block fixed top-0 left-0 w-4 h-4 bg-[#0871E7] rounded-full pointer-events-none z-[100] mix-blend-difference"
         style={{
           x: springX,
           y: springY,
